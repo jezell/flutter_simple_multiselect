@@ -182,8 +182,6 @@ class FlutterMultiselectState<T> extends State<FlutterMultiselect<T>> {
   int _searchId = 0;
   Debouncer? _deBouncer;
 
-  RenderBox? get renderBox => context.findRenderObject() as RenderBox?;
-
   @override
   void initState() {
     super.initState();
@@ -246,9 +244,13 @@ class FlutterMultiselectState<T> extends State<FlutterMultiselect<T>> {
   void _createOverlayEntry() {
     _suggestionsBoxController?.overlayEntry = OverlayEntry(
       builder: (context) {
+        if (!mounted) {
+          return Container();
+        }
+        final renderBox = context.findRenderObject() as RenderBox?;
         if (renderBox != null) {
-          final size = renderBox!.size;
-          final renderBoxOffset = renderBox!.localToGlobal(Offset.zero);
+          final size = renderBox.size;
+          final renderBoxOffset = renderBox.localToGlobal(Offset.zero);
           final topAvailableSpace = renderBoxOffset.dy;
           final mq = MediaQuery.of(context);
           final bottomAvailableSpace = mq.size.height -
@@ -357,10 +359,9 @@ class FlutterMultiselectState<T> extends State<FlutterMultiselect<T>> {
     Future.delayed(const Duration(milliseconds: 300), () {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (mounted) {
-          final renderBox = context.findRenderObject() as RenderBox;
+          final renderBox = context.findRenderObject() as RenderBox?;
           final scroller = Scrollable.maybeOf(context);
-
-          if (scroller != null) {
+          if (scroller != null && renderBox != null) {
             await scroller.position.ensureVisible(renderBox);
           }
         }
@@ -403,10 +404,11 @@ class FlutterMultiselectState<T> extends State<FlutterMultiselect<T>> {
   }
 
   bool _getShowOnTop(BuildContext context) {
+    final renderBox = context.findRenderObject() as RenderBox?;
     if (widget.dropdownDirection == FlutterMultiselectDropdownDirection.auto) {
       if (renderBox != null) {
-        final size = renderBox!.size;
-        final position = renderBox!.localToGlobal(Offset.zero);
+        final size = renderBox.size;
+        final position = renderBox.localToGlobal(Offset.zero);
         final mq = MediaQuery.of(context);
         final topAvailableSpace = position.dy;
         final bottomAvailableSpace =
